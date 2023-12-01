@@ -4,6 +4,61 @@ This module contains classes for converting time formats.
 
 from abc import ABC, abstractmethod
 
+MODE = "file"
+
+
+class TimeException(Exception):
+    """Exception that is raised when there's unexpected"""
+
+    def __init__(self, message="Це моя власна помилка!"):
+        self.message = message
+        super().__init__(self.message)
+
+
+class NotExistingModeException(BaseException):
+    """Exception that is raised when there's unexpected"""
+
+    def __init__(self, message="Це моя власна помилка!"):
+        self.message = message
+        super().__init__(f"there is no such an mode as {self.message}")
+
+
+def logged(exception, mode):
+
+    def logged_decorator(func):
+        import logging
+
+        def wrapper(*args, **kwargs):
+            try:
+                if mode == "console":
+                    logging.basicConfig(level=logging.INFO)
+                elif mode == "file":
+                    logging.basicConfig(filename='app.log', level=logging.DEBUG)
+                else:
+                    raise NotExistingModeException(mode)
+                return func(*args, **kwargs)
+
+            except exception as e:
+                if mode == "console":
+                    logging.error(f"TimeException occurred: {e}")
+                elif mode == "file":
+                    logging.error("TimeException occurred")
+                else:
+                    print(f"TimeException occurred: {e}")
+            except NotExistingModeException as e:
+                if mode == "console":
+                    logging.error(f"Error: {e}")
+                elif mode == "file":
+                    logging.error("Error occurred")
+                else:
+                    print(f"Error: {e}")
+            finally:
+                if mode == "file":
+                    logging.shutdown()
+
+        return wrapper
+    return logged_decorator
+
 
 def check_length_of_date_list(date):
     """
@@ -43,14 +98,6 @@ def validating_seconds_date(num):
         raise TimeException("Cannot handle negative seconds")
 
 
-class TimeException(Exception):
-    """Exception that is raised when there's unexpected"""
-
-    def __init__(self, message="Це моя власна помилка!"):
-        self.message = message
-        super().__init__(self.message)
-
-
 class AbstractClass(ABC):
     """this is abstract class"""
 
@@ -71,6 +118,7 @@ class TimeConverterToDate(AbstractClass, ABC):
         """this overriding method from abstract class"""
         print("hello from TimeConverterToDate")
 
+    @logged(TimeException, MODE)
     def convert_time(self, value):
         """Converts seconds into date"""
         validating_seconds_date(value)
@@ -105,6 +153,7 @@ class TimeConverterToSeconds(AbstractClass, ABC):
         """getter"""
         return self.__date
 
+    @logged(TimeException, MODE)
     def convert_time(self, value: str):
         """Converts the time from seconds to HH:MM:SS format."""
         total_seconds = 0
@@ -122,5 +171,5 @@ if __name__ == "__main__":
     converter_to_date = TimeConverterToDate()
     converter_to_seconds = TimeConverterToSeconds()
 
-    print(converter_to_date.convert_time(36721))
+    print(converter_to_date.convert_time(-1))
     print(converter_to_seconds.convert_time("10:12:01"))
