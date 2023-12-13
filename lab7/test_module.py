@@ -1,7 +1,7 @@
 """this module tests lab7.py"""
 
 import pytest
-from lab6 import TimeException, TimeConverterToSeconds, TimeConverterToDate
+from lab7 import TimeException, TimeConverterToSeconds, TimeConverterToDate
 
 
 @pytest.fixture(name="test_converting_to_date_1")
